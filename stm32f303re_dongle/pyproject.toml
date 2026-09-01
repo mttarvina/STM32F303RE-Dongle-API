@@ -8,9 +8,14 @@ authors = [
 ]
 requires-python = ">=3.13"
 dependencies = [
+    "numpy>=2.5.2",
     "pyserial>=3.5",
+    "signals-toolkit",
 ]
 
 [build-system]
 requires = ["uv_build>=0.10.2,<0.11.0"]
 build-backend = "uv_build"
+
+[tool.uv.sources]
+signals-toolkit = { path = "../../signals_toolkit/signals_toolkit", editable = true }
