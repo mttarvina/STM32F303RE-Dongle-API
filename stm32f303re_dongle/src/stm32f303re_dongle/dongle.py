@@ -135,12 +135,11 @@ class STM32F303RE_Dongle:
         self.dev = serial.Serial(port=port, baudrate=baud_rate, timeout=2.0)
 
     def send(self, payload: bytes):
-        print(f"[SENT]:\t{payload}")
+        # print(f"[SENT]:\t{payload}")
         if len(payload) != 14:
             raise RuntimeError("Invalid number of command bytes!")
         self.dev.write(payload)
         self.dev.flush()
-        time.sleep(0.01)
 
     def send_receive(self, payload: bytes):
         self.send(payload=payload)

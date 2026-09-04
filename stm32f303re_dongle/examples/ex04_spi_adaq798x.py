@@ -1,5 +1,3 @@
-import time
-
 import numpy as np
 from signals_toolkit import (
     ADC_ComputeDynamicRange,
@@ -46,7 +44,7 @@ def main():
     dongle.spi_transmit(tx_command=[0xFFFF], frame_size=num_samples, increment=False)
     adc_data = np.array(dongle.buffer_read_rx(frame_size=num_samples))
     dynamic_range_db = ADC_ComputeDynamicRange(
-        adc_samples=adc_data, adc_resolution=adc_resolution
+        adc_samples=adc_data, resolution=adc_resolution
     )
     result = ADC_ComputeMetricsRaw(
         adc_samples=adc_data, fs=fs, resolution=adc_resolution
