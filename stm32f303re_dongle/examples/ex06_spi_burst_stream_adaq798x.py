@@ -26,28 +26,20 @@ def main():
     if com_port is None:
         raise RuntimeError("No STM32/STLINK found!")
 
-    fs = 800_000
-    adc_resolution = 12
+    fs = 600_000
+    adc_resolution = 16
     dongle = STM32F303RE_Dongle(port=com_port)
     dongle.spi_init(
         data_width=SPI_DataWidth.WIDTH_16,
         first_bit=SPI_FirstBit.MSB,
         freq=SPI_ClkFreq.CLK_18MHZ,
-        clk_polarity=SPI_ClkPolarity.IDLE_HIGH,
-        clk_phase=SPI_ClkPhase.FIRST_EDGE,
+        clk_polarity=SPI_ClkPolarity.IDLE_LOW,
+        clk_phase=SPI_ClkPhase.SECOND_EDGE,
         sample_rate=fs,
-        transmit_delay=0,
-        csn_pulse_width=1.0e-6,
-        csn_polarity=SPI_CSNPolarity.ACTIVE_LOW,
+        transmit_delay=750e-9,
+        csn_pulse_width=750e-9,
+        csn_polarity=SPI_CSNPolarity.ACTIVE_HIGH,
     )
-
-    tx_cmd = 0x8310  # Normal mode, 2XREF_IN, Channel VIN 0
-
-    startup_sequence = [0xFFFF, 0xFFFF, tx_cmd, tx_cmd, tx_cmd]
-    dongle.spi_transmit(
-        tx_command=startup_sequence, frame_size=len(startup_sequence), increment=True
-    )
-    time.sleep(0.5)
 
     num_samples = 8192
     ignore_samples = 8
@@ -95,33 +87,39 @@ def main():
 
     def stream_plot():
         dongle.spi_transmit(
-            tx_command=[tx_cmd],
+            tx_command=[0xFFFF],
             frame_size=num_samples + ignore_samples,
             increment=False,
         )
         adc_data = np.array(
             dongle.buffer_read_rx(frame_size=num_samples + ignore_samples)
         )[ignore_samples:]
-        dynamic_range_db = ADC_ComputeDynamicRange(
-            adc_samples=adc_data, resolution=adc_resolution
-        )
-        result = ADC_ComputeMetricsRaw(
-            adc_samples=adc_data, fs=fs, resolution=adc_resolution
-        )
-        # print(f"Dynamic Range: {dynamic_range_db} dB")
-        plot.update_plot(index=0, x_data=t_axis, y_data=adc_data)
-        plot.update_plot(
-            index=1,
-            x_data=result["spectrum_freqs"],
-            y_data=result["spectrum_mag_dbfs"],
-        )
-        plot.update_text(index=2, text=f"f0 : {result['f0']:.2f} Hz")
-        plot.update_text(index=3, text=f"f0 Magnitude : {result['f0_mag']:.2f} dBFS")
-        plot.update_text(index=4, text=f"SNR : {result['snr']:.2f} dB")
-        plot.update_text(index=5, text=f"SINAD : {result['sinad']:.2f} dB")
-        plot.update_text(index=6, text=f"THD : {result['thd']:.2f} dB")
-        plot.update_text(index=7, text=f"ENOB : {result['enob']:.2f} bits")
-        plot.update_text(index=8, text=f"Dynamic Range: {dynamic_range_db:.2f} dB")
+
+        try:
+            dynamic_range_db = ADC_ComputeDynamicRange(
+                adc_samples=adc_data, resolution=adc_resolution
+            )
+            result = ADC_ComputeMetricsRaw(
+                adc_samples=adc_data, fs=fs, resolution=adc_resolution
+            )
+            # print(f"Dynamic Range: {dynamic_range_db} dB")
+            plot.update_plot(index=0, x_data=t_axis, y_data=adc_data)
+            plot.update_plot(
+                index=1,
+                x_data=result["spectrum_freqs"],
+                y_data=result["spectrum_mag_dbfs"],
+            )
+            plot.update_text(index=2, text=f"f0 : {result['f0']:.2f} Hz")
+            plot.update_text(
+                index=3, text=f"f0 Magnitude : {result['f0_mag']:.2f} dBFS"
+            )
+            plot.update_text(index=4, text=f"SNR : {result['snr']:.2f} dB")
+            plot.update_text(index=5, text=f"SINAD : {result['sinad']:.2f} dB")
+            plot.update_text(index=6, text=f"THD : {result['thd']:.2f} dB")
+            plot.update_text(index=7, text=f"ENOB : {result['enob']:.2f} bits")
+            plot.update_text(index=8, text=f"Dynamic Range: {dynamic_range_db:.2f} dB")
+        except RuntimeWarning:
+            pass
 
     plot.setup_stream(plot_interval=0.25, callback_fn=stream_plot)
     plot.start_stream()

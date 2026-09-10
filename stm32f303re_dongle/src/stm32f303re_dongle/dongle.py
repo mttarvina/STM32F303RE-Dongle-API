@@ -131,7 +131,7 @@ class CMD_Frame:
 
 class STM32F303RE_Dongle:
     def __init__(self, port, baud_rate: int = 1500000):
-        self.dev = serial.Serial(port=port, baudrate=baud_rate, timeout=2.0)
+        self.dev = serial.Serial(port=port, baudrate=baud_rate, timeout=3.0)
 
     def send(self, payload: bytes):
         # print(f"[SENT]:\t{payload}")
