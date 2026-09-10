@@ -46,12 +46,12 @@ def main():
     )
     time.sleep(0.5)
 
-    num_samples = 6144
-    ignore_samples = 6
+    num_samples = 8192
+    ignore_samples = 8
     t_axis = np.linspace(0, ((1 / fs) * num_samples), num_samples, endpoint=False)
     plot_width = 1600
     plot_height = 900
-    text_loc = int(0.8 * plot_width)
+    text_loc = int(0.85 * plot_width)
 
     plot = SignalPlotter(title="ADC Plots", size=(plot_width, plot_height))
     plot.add_plot(
@@ -73,17 +73,22 @@ def main():
         y_label="Magnitude",
         y_unit="dBFS",
         y_data=np.zeros(int((num_samples / 2) + 1)),
-        y_range=(-150, 0),
+        y_range=(-150, 10),
         pen_color="#FF00AA",
     )
-
-    plot.add_text("-", 1, (text_loc, 0), "#00AAFF")  # text index 0
-    plot.add_text("-", 1, (text_loc, 15), "#00AAFF")  # text index 1
+    plot.add_text(
+        f"Sample Rate : {int(fs / 1000)} kHz", 1, (text_loc, 0), "#00AAFF"
+    )  # text index 0
+    plot.add_text(
+        f"ADC Samples : {num_samples}", 1, (text_loc, 15), "#00AAFF"
+    )  # text index 1
     plot.add_text("-", 1, (text_loc, 30), "#00AAFF")  # text index 2
     plot.add_text("-", 1, (text_loc, 45), "#00AAFF")  # text index 3
     plot.add_text("-", 1, (text_loc, 60), "#00AAFF")  # text index 4
     plot.add_text("-", 1, (text_loc, 75), "#00AAFF")  # text index 5
     plot.add_text("-", 1, (text_loc, 90), "#00AAFF")  # text index 6
+    plot.add_text("-", 1, (text_loc, 105), "#00AAFF")  # text index 7
+    plot.add_text("-", 1, (text_loc, 120), "#00AAFF")  # text index 8
 
     def stream_plot():
         dongle.spi_transmit(
@@ -107,15 +112,15 @@ def main():
             x_data=result["spectrum_freqs"],
             y_data=result["spectrum_mag_dbfs"],
         )
-        plot.update_text(index=0, text=f"f0 : {result['f0']:.2f} Hz")
-        plot.update_text(index=1, text=f"f0 Magnitude : {result['f0_mag']:.2f} dBFS")
-        plot.update_text(index=2, text=f"SNR : {result['snr']:.2f} dB")
-        plot.update_text(index=3, text=f"SINAD : {result['sinad']:.2f} dB")
-        plot.update_text(index=4, text=f"THD : {result['thd']:.2f} dB")
-        plot.update_text(index=5, text=f"ENOB : {result['enob']:.2f} bits")
-        plot.update_text(index=6, text=f"Dynamic Range: {dynamic_range_db:.2f} dB")
+        plot.update_text(index=2, text=f"f0 : {result['f0']:.2f} Hz")
+        plot.update_text(index=3, text=f"f0 Magnitude : {result['f0_mag']:.2f} dBFS")
+        plot.update_text(index=4, text=f"SNR : {result['snr']:.2f} dB")
+        plot.update_text(index=5, text=f"SINAD : {result['sinad']:.2f} dB")
+        plot.update_text(index=6, text=f"THD : {result['thd']:.2f} dB")
+        plot.update_text(index=7, text=f"ENOB : {result['enob']:.2f} bits")
+        plot.update_text(index=8, text=f"Dynamic Range: {dynamic_range_db:.2f} dB")
 
-    plot.setup_stream(plot_interval=0.2, callback_fn=stream_plot)
+    plot.setup_stream(plot_interval=0.25, callback_fn=stream_plot)
     plot.start_stream()
 
     plot.show()

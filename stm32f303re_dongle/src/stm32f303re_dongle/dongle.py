@@ -26,10 +26,9 @@ class CMD_Subject(IntEnum):
     CMD_ADC = 49
     CMD_I2C = 50
     CMD_SPI = 51
-    CMD_SPI_CSN = 52
-    CMD_BUFFER = 53
-    CMD_TIMER = 54
-    CMD_PWM = 55
+    CMD_BUFFER = 52
+    CMD_TIMER = 53
+    CMD_PWM = 54
 
 
 class GPIO_Ports(StrEnum):
@@ -226,36 +225,38 @@ class STM32F303RE_Dongle:
                 f"SPI CSN pulse width ({csn_pulse_width}) should not be less than 13.8889ns!"
             )
 
+        # configure SPI
+        transmit_delay_count = int(transmit_delay * 72_000_000.0)
+        cmd = CMD_Frame(
+            CMD_Action.CMD_CONFIG,
+            CMD_Subject.CMD_SPI,
+            "0",
+            f"{data_width}{first_bit}{freq}{clk_polarity}",
+            f"{clk_phase}{transmit_delay_count:03X}",
+        )
+        self.send(payload=cmd.format())
+        time.sleep(0.01)
+
+        # configure SPI CS
+        csn_pulse_width_count = int(csn_pulse_width * 72_000_000.0)
+        cmd = CMD_Frame(
+            CMD_Action.CMD_CONFIG,
+            CMD_Subject.CMD_SPI,
+            "1",
+            f"{csn_pulse_width_count:04X}",
+            f"{csn_polarity}000",
+        )
+        self.send(payload=cmd.format())
+        time.sleep(0.01)
+
         # configure SPI sample rate
         sample_rate_khz = int(sample_rate / 1000)
         cmd = CMD_Frame(
             CMD_Action.CMD_CONFIG,
             CMD_Subject.CMD_SPI,
-            "0",
+            "2",
             f"{sample_rate_khz:04X}",
             "0000",
-        )
-        self.send(payload=cmd.format())
-
-        # configure SPI CSN pin
-        csn_pulse_width_count = int(csn_pulse_width * 72_000_000.0)
-        cmd = CMD_Frame(
-            CMD_Action.CMD_CONFIG,
-            CMD_Subject.CMD_SPI_CSN,
-            "0",
-            f"{csn_pulse_width_count:04X}",
-            f"000{csn_polarity}",
-        )
-        self.send(payload=cmd.format())
-
-        # configure SPI Module
-        transmit_delay_count = int(transmit_delay * 72_000_000.0)
-        cmd = CMD_Frame(
-            CMD_Action.CMD_CONFIG,
-            CMD_Subject.CMD_SPI,
-            "1",
-            f"{data_width}{first_bit}{freq}{clk_polarity}",
-            f"{clk_phase}{transmit_delay_count:03X}",
         )
         self.send(payload=cmd.format())
         time.sleep(0.01)
@@ -269,6 +270,7 @@ class STM32F303RE_Dongle:
             "0000",
         )
         self.send(payload=cmd.format())
+        time.sleep(0.01)
 
     def spi_transmit(self, tx_command: list[int], frame_size: int, increment: bool):
         self.buffer_reset_tx()

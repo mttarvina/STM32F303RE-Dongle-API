@@ -18,4 +18,4 @@ requires = ["uv_build>=0.10.2,<0.11.0"]
 build-backend = "uv_build"
 
 [tool.uv.sources]
-signals-toolkit = { path = "../../signals_toolkit/signals_toolkit", editable = true }
+signals-toolkit = { git = "https://github.com/mttarvina/signals_toolkit.git", rev = "root" }

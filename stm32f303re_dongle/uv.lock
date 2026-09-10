@@ -157,18 +157,11 @@ wheels = [
 [[package]]
 name = "signals-toolkit"
 version = "0.1.0"
-source = { editable = "../../signals_toolkit/signals_toolkit" }
+source = { git = "https://github.com/mttarvina/signals_toolkit.git?rev=root#f3095603351320b10780d38dd5c67de0133f5bcd" }
 dependencies = [
     { name = "numpy" },
     { name = "pyqtgraph" },
     { name = "pyside6" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "numpy", specifier = ">=2.5.2" },
-    { name = "pyqtgraph", specifier = ">=0.14.0" },
-    { name = "pyside6", specifier = ">=6.11.2" },
 ]
 
 [[package]]
@@ -185,5 +178,5 @@ dependencies = [
 requires-dist = [
     { name = "numpy", specifier = ">=2.5.2" },
     { name = "pyserial", specifier = ">=3.5" },
-    { name = "signals-toolkit", editable = "../../signals_toolkit/signals_toolkit" },
+    { name = "signals-toolkit", git = "https://github.com/mttarvina/signals_toolkit.git?rev=root" },
 ]
